@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AetherMail Pro</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#04070f">
+<link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="AetherMail">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js" async defer></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#04070f;--sf:rgba(11,17,32,.72);--solid:#0b1120;--sub:rgba(23,33,54,.68);--hov:rgba(56,189,248,.08);--t1:#f8fafc;--t2:#94a3b8;--t3:#64748b;--bd:rgba(255,255,255,.08);--sh:0 20px 48px -15px rgba(0,0,0,.65);--grid:rgba(255,255,255,.06);--blur:26px;--op:.68;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body.light{--bg:#f4f7fc;--sf:rgba(255,255,255,.8);--solid:#fff;--sub:#edf2f9;--hov:rgba(2,132,199,.06);--t1:#0b1329;--t2:#475569;--t3:#94a3b8;--bd:rgba(11,19,41,.09);--sh:0 16px 36px -12px rgba(11,19,41,.1);--grid:rgba(11,19,41,.08)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,-apple-system,sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background .4s}
+h1,h2,h3,.kv{font-family:"Plus Jakarta Sans",Inter,sans-serif}
+button{font-family:inherit;color:inherit}
+:focus-visible{outline:2px solid #38bdf8;outline-offset:2px}
+.orbs{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(95px);opacity:.45;animation:fl 22s ease-in-out infinite alternate}
+.o1{width:480px;height:480px;background:#38bdf8;top:-120px;left:-80px}.o2{width:420px;height:420px;background:#6366f1;top:40%;right:-60px;animation-delay:-6s}.o3{width:380px;height:380px;background:#0ea5e9;bottom:-90px;left:30%;animation-delay:-12s}
+@keyframes fl{to{transform:translate(30px,40px) scale(1.06)}}
+.side{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));left:16px;width:272px;border-radius:28px;z-index:50;display:flex;flex-direction:column;justify-content:space-between;padding:18px 14px;color:#f8fafc;background:linear-gradient(155deg,rgba(11,17,32,var(--op)),rgba(8,13,25,calc(var(--op) + .12)));backdrop-filter:blur(var(--blur)) saturate(185%);-webkit-backdrop-filter:blur(var(--blur)) saturate(185%);box-shadow:0 30px 60px -15px rgba(2,6,23,.55),inset 0 1.5px 1px rgba(255,255,255,.35);border:1px solid rgba(186,230,253,.3);overflow-y:auto;transition:transform .45s cubic-bezier(.22,1,.36,1)}
+body.docked .side{top:0;bottom:0;left:0;border-radius:0 24px 24px 0}
+.brand{display:flex;align-items:center;gap:10px;font:700 16px "Plus Jakarta Sans",sans-serif;padding:2px 6px 14px}
+.gem{width:32px;height:32px;border-radius:11px;background:linear-gradient(135deg,#38bdf8,#2563eb);display:grid;place-items:center;box-shadow:0 0 16px rgba(56,189,248,.5)}
+.compose{width:100%;display:flex;justify-content:center;gap:8px;padding:11px;margin-bottom:16px;border-radius:16px;border:1px solid rgba(186,230,253,.5);background:linear-gradient(135deg,rgba(56,189,248,.9),rgba(37,99,235,.92));color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;transition:transform .2s}
+.compose:hover{transform:translateY(-2px)}
+.lbl{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(148,163,184,.85);padding:0 8px 8px}
+.nav{display:flex;flex-direction:column;gap:4px}
+.ni{height:44px;display:flex;align-items:center;gap:12px;padding:0 13px;border-radius:15px;border:1px solid transparent;background:transparent;color:rgba(226,232,240,.8);font-size:13.5px;font-weight:500;cursor:pointer;text-align:left;transition:.25s}
+.ni:hover{background:rgba(255,255,255,.05);color:#fff}
+.ni.on{color:#fff;font-weight:600;background:linear-gradient(95deg,rgba(56,189,248,.26),rgba(255,255,255,.07));border-color:rgba(125,211,252,.5)}
+.ni svg{width:18px;height:18px;flex-shrink:0}.ni.on svg{stroke:#7dd3fc}
+.bdg{margin-left:auto;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(56,189,248,.18);color:#7dd3fc;border:1px solid rgba(125,211,252,.3)}.bdg.w{background:rgba(244,63,94,.18);color:#fda4af;border-color:rgba(251,113,133,.3)}
+.studio{margin-top:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:9px 12px}
+.studio summary{cursor:pointer;font-size:11.5px;font-weight:600;color:#bae6fd;list-style:none}
+.sl{display:flex;justify-content:space-between;font-size:10.5px;color:rgba(226,232,240,.8);margin-top:9px}.sl b{color:#7dd3fc}
+input[type=range]{width:100%;accent-color:#38bdf8}
+.prof{display:flex;align-items:center;gap:10px;padding:9px 11px;margin-top:10px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);cursor:pointer;width:100%;text-align:left}
+.av{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#38bdf8,#818cf8);display:grid;place-items:center;font-weight:700;font-size:12px;color:#fff}
+.main{position:relative;z-index:10;margin-left:308px;padding:18px 28px 48px 8px;transition:margin .45s}
+body.docked .main{margin-left:288px;padding-left:12px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;border-radius:24px;background:var(--sf);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--bd);box-shadow:var(--sh);margin-bottom:24px;flex-wrap:wrap}
+.search{flex:1;min-width:200px;max-width:380px;padding:10px 14px;border-radius:14px;border:1px solid var(--bd);background:var(--sub);color:var(--t1);font:13px Inter,sans-serif;outline:none}
+.search:focus{border-color:#38bdf8}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:14px;border:1px solid var(--bd);background:var(--sub);font-size:12.5px;font-weight:500;cursor:pointer;transition:.25s}
+.pill:hover{border-color:rgba(56,189,248,.5)}
+.dot{width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981}
+.view{display:none}.view.on{display:block;animation:in .4s cubic-bezier(.22,1,.36,1)}
+@keyframes in{from{opacity:0;transform:translateY(14px)}}
+.vh{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.kick{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#38bdf8;margin-bottom:5px}
+.vt{font-size:24px;font-weight:800;letter-spacing:-.025em}.vs{font-size:13px;color:var(--t2);margin-top:3px}
+.seg{display:inline-flex;padding:4px;border-radius:15px;background:var(--sub);border:1px solid var(--bd)}
+.seg button{padding:7px 15px;border-radius:11px;border:0;background:transparent;color:var(--t2);font-size:12px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--solid);color:var(--t1)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px;margin-bottom:20px}
+.card{background:var(--sf);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--bd);border-radius:26px;padding:24px;box-shadow:var(--sh);transition:.3s}
+.card:hover{border-color:rgba(56,189,248,.35);transform:translateY(-2px)}
+.c3{grid-column:span 3}.c4{grid-column:span 4}.c8{grid-column:span 8}
+.kt{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.ki{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:18px}
+.kv{font-size:28px;font-weight:800;letter-spacing:-.03em}.kl{font-size:13px;color:var(--t2);font-weight:500}
+.tp{padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700}
+.chart{position:relative;height:215px;margin-top:8px}.chart svg{width:100%;height:100%;overflow:visible}
+.cd{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;padding:0;border-radius:50%;background:#0b1120;border:2.5px solid #38bdf8;cursor:pointer;transition:transform .2s;z-index:5}
+.cd:hover,.cd:focus-visible{transform:scale(1.5)}
+.tip{position:absolute;pointer-events:none;padding:10px 14px;border-radius:16px;background:rgba(11,17,32,.95);border:1px solid rgba(125,211,252,.4);color:#fff;font-size:12px;transform:translate(-50%,-130%);opacity:0;transition:opacity .2s;z-index:20;white-space:nowrap}
+.tip.v{opacity:1}
+.axis{display:flex;justify-content:space-between;margin-top:10px;font-size:11.5px;color:var(--t3)}
+.bar{margin-bottom:14px}.bm{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px;gap:8px}
+.tr{height:8px;border-radius:999px;background:var(--sub);overflow:hidden}.tr div{height:100%;border-radius:999px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:13px;border:1px solid var(--bd);background:var(--sub);font-size:12px;font-weight:600;cursor:pointer;transition:.25s}
+.btn:hover{border-color:rgba(56,189,248,.45)}.btn.d:hover{border-color:rgba(244,63,94,.5);color:#f43f5e}
+.pri{padding:10px 20px;border:0;border-radius:14px;background:linear-gradient(135deg,#0284c7,#2563eb);color:#fff;font-size:13px;font-weight:600;cursor:pointer}
+.ban{background:linear-gradient(135deg,rgba(245,158,11,.14),rgba(244,63,94,.09));border:1px solid rgba(245,158,11,.32);border-radius:26px;padding:22px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.thr{background:var(--sf);border:1px solid var(--bd);border-radius:22px;padding:20px;box-shadow:var(--sh);display:flex;flex-direction:column;justify-content:space-between;gap:14px}
+.thr.out{animation:van .55s cubic-bezier(.4,0,.2,1) forwards;overflow:hidden}
+@keyframes van{40%{transform:scale(1.04) translateY(-8px);background:rgba(244,63,94,.18);border-color:rgba(244,63,94,.6)}to{transform:scale(.75) translateY(45px) rotate(3deg);opacity:0;filter:blur(12px)}}
+.fb{display:flex;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}.chips{display:flex;gap:7px;flex-wrap:wrap}
+.chip{padding:7px 14px;border-radius:999px;border:1px solid var(--bd);background:var(--sf);color:var(--t2);font-size:12px;font-weight:600;cursor:pointer}
+.chip.on{background:rgba(56,189,248,.16);border-color:rgba(56,189,248,.55);color:#38bdf8}
+.split{display:grid;grid-template-columns:380px 1fr;gap:18px;min-height:560px}
+.lp,.rp{background:var(--sf);backdrop-filter:blur(20px);border:1px solid var(--bd);border-radius:26px;box-shadow:var(--sh);max-height:680px;overflow-y:auto}
+.lp{padding:10px;display:flex;flex-direction:column;gap:6px}.rp{padding:24px}
+.row{padding:14px 16px;border-radius:18px;border:1px solid transparent;cursor:pointer;text-align:left;background:none;width:100%}
+.row:hover{background:var(--hov)}.row.sel{background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.4)}
+.row.un .s,.row.un .j{font-weight:700}
+.rt{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px}.s{font-size:13.5px}.tm{font-size:11px;color:var(--t3)}
+.j{font-size:13px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sn{font-size:12px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px}
+.pp{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:8px}
+.Gmail{background:rgba(234,67,53,.12);color:#ef4444}.Outlook,.iCloud{background:rgba(2,132,199,.12);color:#0284c7}.IMAP{background:rgba(99,102,241,.12);color:#6366f1}
+.star{background:none;border:0;cursor:pointer;color:var(--t3);font-size:15px}.star.on{color:#f59e0b}
+.rb{font-size:14px;line-height:1.7;white-space:pre-line;margin:16px 0 20px}
+.att{display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border-radius:16px;background:var(--sub);border:1px solid var(--bd);font-size:12.5px;margin:0 8px 8px 0;cursor:pointer}
+.rep{padding:14px 16px;border-radius:18px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);margin-bottom:10px;font-size:13.5px}
+textarea,.fc{width:100%;padding:11px 14px;border-radius:14px;border:1px solid var(--bd);background:var(--sub);color:var(--t1);font:13.5px Inter,sans-serif;outline:none;margin-bottom:10px}
+.docs{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+.acc{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px;border-radius:22px;background:var(--sf);border:1px solid var(--bd);box-shadow:var(--sh);margin-bottom:14px;flex-wrap:wrap}
+.mb{position:fixed;inset:0;background:rgba(2,6,23,.6);backdrop-filter:blur(12px);z-index:90;display:none;align-items:center;justify-content:center;padding:20px}.mb.on{display:flex}
+.md{width:100%;max-width:560px;border-radius:30px;background:var(--solid);border:1px solid rgba(125,211,252,.35);padding:26px;max-height:90vh;overflow-y:auto}
+.md label{display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px}
+.toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));right:24px;z-index:120;padding:13px 20px;border-radius:18px;background:rgba(11,17,32,.95);border:1px solid rgba(125,211,252,.45);color:#fff;font-size:13px;transform:translateY(140%);opacity:0;transition:.4s}
+.toast.on{transform:none;opacity:1}
+.fab{display:none;position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:20px;z-index:60;padding:12px 18px;border-radius:999px;background:rgba(11,17,32,.92);border:1px solid rgba(125,211,252,.45);color:#fff;font-size:13px;font-weight:600;cursor:pointer}
+@media(max-width:900px){.side{transform:translateX(-115%)}.side.open{transform:none}.main,body.docked .main{margin-left:0;padding:16px 14px 84px}.fab{display:block}.split{grid-template-columns:1fr}.c3,.c4,.c8{grid-column:span 12}.c3{grid-column:span 6}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+<button class="fab" id="fab">☰ Menu</button>
+
+<aside class="side" id="side">
+ <div>
+  <div class="brand"><div class="gem">✉</div><span>Aether<span style="color:#38bdf8">Mail</span> Pro</span></div>
+  <button class="compose" id="openCompose">＋ Nouveau message</button>
+  <div class="lbl">Navigation &amp; analyse</div>
+  <nav class="nav" id="nav"></nav>
+ </div>
+ <div>
+  <details class="studio"><summary>✦ Studio Cristal</summary>
+   <div class="sl"><span>Flou optique</span><b id="bo">26px</b></div><input type="range" id="blur" min="6" max="40" value="26">
+   <div class="sl"><span>Opacité teinte</span><b id="oo">68%</b></div><input type="range" id="op" min="25" max="90" value="68">
+  </details>
+  <button class="prof" id="openSet"><div class="av">CL</div><div><div style="font-size:13px;font-weight:600;color:#fff">Camille Laurent</div><div style="font-size:11px;color:#94a3b8">Paramètres &amp; comptes</div></div></button>
+ </div>
+</aside>
+
+<main class="main">
+ <header class="top">
+  <input class="search" id="q" type="search" placeholder="Rechercher un expéditeur, un objet…" aria-label="Rechercher">
+  <div style="display:flex;gap:9px;flex-wrap:wrap">
+   <button class="pill" id="sum"><span class="dot"></span><span id="sumT"></span></button>
+   <button class="pill" id="lay">Flottant</button>
+   <button class="pill" id="thm">Mode clair</button>
+  </div>
+ </header>
+
+ <section class="view on" id="v-dashboard">
+  <div class="vh"><div><div class="kick">Intelligence messagerie</div><h1 class="vt">TABLEAU DE BORD EMAIL</h1><p class="vs">Suivi des flux, du spam, des priorités et des documents.</p></div>
+   <div class="seg" id="per"><button class="on" data-p="7J">7 jours</button><button data-p="30J">30 jours</button></div></div>
+  <div class="grid" id="kpis"></div>
+  <div class="grid">
+   <div class="card c8">
+    <h3 style="font-size:16px">Flux des mails reçus et indésirables</h3>
+    <p class="vs" style="margin-bottom:6px">Survolez ou sélectionnez un point pour le détail.</p>
+    <div class="chart" id="cw"><div class="tip" id="tip"></div>
+     <svg viewBox="0 0 640 205" preserveAspectRatio="none"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0284c7" stop-opacity=".45"/><stop offset="1" stop-color="#38bdf8" stop-opacity=".01"/></linearGradient></defs>
+      <g stroke="var(--grid)"><line x1="0" y1="35" x2="640" y2="35"/><line x1="0" y1="85" x2="640" y2="85"/><line x1="0" y1="135" x2="640" y2="135"/><line x1="0" y1="185" x2="640" y2="185"/></g>
+      <path id="area" fill="url(#g)"/><path id="ln" fill="none" stroke="#38bdf8" stroke-width="3" vector-effect="non-scaling-stroke"/><path id="sp" fill="none" stroke="#f43f5e" stroke-width="2" stroke-dasharray="5 4" vector-effect="non-scaling-stroke"/></svg></div>
+    <div class="axis" id="ax"></div>
+   </div>
+   <div class="card c4"><h3 style="font-size:16px;margin-bottom:4px">Répartition par compte</h3><p class="vs" style="margin-bottom:18px">Volume synchronisé</p><div id="prov"></div>
+    <button class="btn" style="width:100%" id="manage">Gérer les comptes</button></div>
+  </div>
+ </section>
+
+ <section class="view" id="v-cleaner">
+  <div class="vh"><div><div class="kick">Sécurité &amp; anti-phishing</div><h1 class="vt">CLEANER MAIL INTELLIGENT</h1><p class="vs">Analyse des en-têtes et suppression en un geste.</p></div>
+   <button class="pri" id="cleanAll" style="background:linear-gradient(135deg,#f59e0b,#f43f5e)">Nettoyer toutes les menaces</button></div>
+  <div class="ban"><div><div style="font-size:16px;font-weight:700" id="cTitle"></div><div class="vs" id="cDesc"></div></div><b style="color:#38bdf8">Score de sécurité : 94,2 %</b></div>
+  <div class="grid" id="threats"></div>
+ </section>
+
+ <section class="view" id="v-mail">
+  <div class="vh" style="margin-bottom:14px"><div><div class="kick" id="mk"></div><h1 class="vt" id="mt"></h1></div></div>
+  <div class="fb"><div class="chips" id="fa"></div><div class="chips" id="fs"></div></div>
+  <div class="split"><div class="lp" id="list"></div><div class="rp" id="reader"></div></div>
+ </section>
+
+ <section class="view" id="v-documents">
+  <div class="vh"><div><div class="kick">Gestionnaire de fichiers</div><h1 class="vt">DOCUMENTS &amp; PIÈCES JOINTES</h1><p class="vs">Tous les fichiers reçus, au même endroit.</p></div><div class="chips" id="fd"></div></div>
+  <div class="docs" id="docs"></div>
+ </section>
+
+ <section class="view" id="v-accounts">
+  <div class="vh"><div><div class="kick">Synchronisation multi-protocoles</div><h1 class="vt">COMPTES CONNECTÉS</h1><p class="vs">IMAP, SMTP, Gmail OAuth ou Outlook 365.</p></div><button class="pri" id="addAcc">Ajouter un compte</button></div>
+  <div id="accs"></div>
+ </section>
+</main>
+
+<div class="mb" id="composeModal"><div class="md">
+ <div style="display:flex;justify-content:space-between;margin-bottom:16px"><h2 style="font-size:18px">Nouveau message</h2><button class="btn" data-close>Fermer</button></div>
+ <div><label for="cf">Compte expéditeur</label><select class="fc" id="cf"></select>
+ <label for="ct">Destinataire</label><input class="fc" id="ct" type="email" placeholder="client@entreprise.fr">
+ <label for="cs">Objet</label><input class="fc" id="cs" placeholder="Sujet de votre message">
+ <label for="cb">Message</label><textarea id="cb" rows="5" placeholder="Rédigez votre message…"></textarea></div>
+ <div style="display:flex;justify-content:flex-end;gap:10px"><button class="btn" data-close>Annuler</button><button class="pri" id="send">Envoyer</button></div>
+</div></div>
+
+<div class="mb" id="setModal"><div class="md">
+ <div style="display:flex;justify-content:space-between;margin-bottom:14px"><h2 style="font-size:18px">Paramètres &amp; comptes</h2><button class="btn" data-close>Fermer</button></div>
+ <div style="background:var(--sub);border-radius:18px;padding:14px;margin-bottom:14px">
+  <h3 style="font-size:14px;margin-bottom:6px">Connexion à vos vraies boîtes mail</h3>
+  <p class="vs" style="margin-bottom:10px;line-height:1.5">Gmail et Outlook / Microsoft 365 se connectent directement depuis cette page (OAuth, aucun mot de passe saisi ici). Créez un « ID client » gratuit pour chaque service et collez-le ci-dessous. iCloud et IMAP exigent un serveur relais : impossible depuis un navigateur seul.</p>
+  <label for="gid">ID client Google (« Application Web »)</label><input class="fc" id="gid" placeholder="xxxx.apps.googleusercontent.com" autocomplete="off">
+  <label for="mid">ID client Microsoft (« Application monopage »)</label><input class="fc" id="mid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off">
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pri" id="cG">Connecter Gmail</button><button class="pri" id="cM">Connecter Outlook</button></div>
+  <details style="margin-top:12px;font-size:12px;color:var(--t2);line-height:1.6"><summary style="cursor:pointer;font-weight:600">Comment obtenir les ID clients ?</summary>
+   <p style="margin-top:8px"><b>Google</b> : console.cloud.google.com → nouveau projet → activer « Gmail API » → écran de consentement OAuth (Externe, ajoutez votre adresse comme utilisateur test) → Identifiants → ID client OAuth → Application Web → « Origines JavaScript autorisées » : l’adresse exacte du site (ex. https://pseudo.github.io).</p>
+   <p style="margin-top:8px"><b>Microsoft</b> : entra.microsoft.com → Inscriptions d’applications → Nouvelle (comptes de tous annuaires et comptes personnels) → URI de redirection de type « Application monopage (SPA) » = l’adresse exacte de cette page, fichier compris → Autorisations API → Microsoft Graph, déléguées : Mail.ReadWrite, Mail.Send, User.Read.</p></details>
+ </div>
+ <div id="mAccs"></div>
+ <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn d" id="reset">Réinitialiser les données de démo</button></div>
+</div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const KEY="aethermail-pro-v2";
+const A0=[{id:"a1",provider:"Gmail",email:"camille.laurent@gmail.com",color:"#ef4444",count:680},{id:"a2",provider:"Outlook",email:"c.laurent@entreprise-group.fr",color:"#0284c7",count:490},{id:"a3",provider:"IMAP",email:"direction@aether-studio.io",color:"#6366f1",count:250}];
+const M0=[
+{id:"m1",sender:"Henri Delacroix",email:"h.delacroix@finance-partners.fr",av:"HD",col:"linear-gradient(135deg,#0284c7,#38bdf8)",provider:"Outlook",subject:"Validation du budget T4 & contrat cadre signé",snippet:"Vous trouverez ci-joint le contrat cadre paraphé ainsi que le tableau financier…",body:"Bonjour Camille,\n\nSuite à notre comité de direction de ce matin, j’ai le plaisir de vous transmettre le contrat cadre définitif ainsi que le prévisionnel budgétaire du quatrième trimestre.\n\nBien cordialement,\nHenri Delacroix",time:"10:42",unread:true,starred:true,spam:false,att:[{n:"Contrat_Cadre_2026_Signe.pdf",t:"PDF",s:"2,4 Mo"},{n:"Budget_Previsionnel_T4.xlsx",t:"XLSX",s:"840 Ko"}],rep:[]},
+{id:"m2",sender:"Sarah Benali",email:"sarah.design@gmail.com",av:"SB",col:"linear-gradient(135deg,#6366f1,#a855f7)",provider:"Gmail",subject:"Maquettes finales glassmorphism & UI kit",snippet:"Voici les derniers écrans haute définition et les composants vectoriels…",body:"Salut Camille,\n\nJ’ai finalisé les ajustements sur les reflets spéculaires et le mode PWA de l’interface.\n\nSarah",time:"09:18",unread:true,starred:true,spam:false,att:[{n:"UI_Kit_Glassmorphism_v3.png",t:"PNG",s:"4,1 Mo"}],rep:[]},
+{id:"m3",sender:"Notaire & Associés Paris",email:"etude@notaires-paris8.fr",av:"NP",col:"linear-gradient(135deg,#059669,#34d399)",provider:"IMAP",subject:"Acte de cession & attestation officielle",snippet:"Veuillez trouver ci-après l’attestation officielle relative au dossier n° 4892…",body:"Madame Laurent,\n\nVeuillez trouver en pièce jointe l’attestation officielle certifiée conforme relative à l’enregistrement de votre dossier n° 4892.",time:"Hier",unread:false,starred:false,spam:false,att:[{n:"Attestation_Officielle_4892.pdf",t:"PDF",s:"1,7 Mo"}],rep:[]},
+{id:"m5",sender:"Service Sécurité Bancaire [Alerte]",email:"verify-account@securite-banque-alert.xyz",av:"SP",col:"linear-gradient(135deg,#e11d48,#fb7185)",provider:"Gmail",subject:"URGENT : vérifiez vos identifiants sous 24 h",snippet:"Votre accès a été restreint. Cliquez sur ce lien externe pour débloquer…",body:"Message placé en courrier indésirable par le filtre anti-phishing.",time:"16 nov.",unread:true,starred:false,spam:true,threat:"Phishing & malware critique",desc:"Contient un lien de redirection vers un domaine frauduleux de collecte de mots de passe.",att:[],rep:[]},
+{id:"m6",sender:"Offres Casino & Crypto VIP",email:"win@crypto-spin-bonus.site",av:"OC",col:"linear-gradient(135deg,#f59e0b,#fbbf24)",provider:"Outlook",subject:"Gagnez 5 BTC dès maintenant en vous inscrivant",snippet:"Cliquez ici pour réclamer votre bonus exclusif sans dépôt…",body:"Spam publicitaire détecté.",time:"15 nov.",unread:true,starred:false,spam:true,threat:"Spam & publicité agressive",desc:"Expéditeur inconnu multipliant les envois masqués par rotation d’IP.",att:[],rep:[]},
+{id:"m7",sender:"Newsletter Shopping inactive",email:"contact@boutique-mode-obsolete.fr",av:"NS",col:"linear-gradient(135deg,#64748b,#94a3b8)",provider:"Gmail",subject:"Soldes d’hiver : -70 % sur tout le catalogue",snippet:"Profitez de nos remises exceptionnelles valables ce week-end…",body:"Newsletter inactive.",time:"12 nov.",unread:false,starred:false,spam:true,threat:"Newsletter inactive (+ 6 mois)",desc:"Aucun e-mail ouvert au cours des 6 derniers mois. Nettoyage recommandé.",att:[],rep:[]}];
+const D={"7J":{rate:"3,8 %",lab:["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"],p:[[0,118,184,7,"Lundi"],[106,90,210,6,"Mardi"],[213,102,195,8,"Mercredi"],[320,65,240,5,"Jeudi"],[426,50,265,7,"Vendredi"],[533,140,155,4,"Samedi"],[640,128,162,5,"Dimanche"]],sp:[172,175,171,177,173,179,176]},
+"30J":{rate:"3,5 %",lab:["Sem 1","Sem 2","Sem 3","Sem 4"],p:[[0,108,1240,42,"Semaine 1"],[213,80,1410,48,"Semaine 2"],[426,58,1590,39,"Semaine 3"],[640,38,1780,46,"Semaine 4"]],sp:[168,166,170,164]}};
+let accounts=A0.map(a=>({...a})),mails=M0.map(m=>({...m})),light=matchMedia("(prefers-color-scheme: light)").matches,docked=false;
+let sec="dashboard",sel="m1",fAcc="all",fSt="all",fDoc="ALL",query="",period="7J";
+const NAV=[["dashboard","Vue d’ensemble","▦"],["inbox","Boîte de réception","✉"],["cleaner","Cleaner intelligent","🛡"],["starred","Mails importants","★"],["documents","Documents & PJ","📎"],["accounts","Comptes connectés","🔗"]];
+function save(){try{localStorage.setItem(KEY,JSON.stringify({accounts,mails:mails.filter(m=>!m.live),light,docked}))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(!s)return;if(Array.isArray(s.mails))mails=s.mails;if(Array.isArray(s.accounts)&&s.accounts.length)accounts=s.accounts;light=!!s.light;docked=!!s.docked}catch(e){}}
+let tt;function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("on"),3000)}
+const real=()=>mails.filter(m=>!m.spam),threats=()=>mails.filter(m=>m.spam);
+function counts(){const r=real(),u=r.filter(m=>m.unread).length,s=r.filter(m=>m.starred).length,d=r.reduce((a,m)=>a+m.att.length,0);return{u,s,d,t:threats().length,n:accounts.length}}
+function renderNav(){const c=counts(),b={inbox:c.u,cleaner:c.t,starred:c.s,documents:c.d,accounts:c.n};
+ $("#nav").innerHTML=NAV.map(([k,l,i])=>`<button class="ni ${k===sec?"on":""}" data-v="${k}"><span style="width:18px;text-align:center">${i}</span><span>${l}</span>${b[k]!==undefined?`<span class="bdg ${k==="cleaner"?"w":""}">${b[k]}</span>`:""}</button>`).join("");
+ $$(".ni").forEach(n=>n.onclick=()=>go(n.dataset.v));
+ $("#sumT").textContent=accounts.map(a=>a.provider).join(" • ");}
+function go(v){sec=v;$$(".view").forEach(s=>s.classList.remove("on"));
+ const id=v==="inbox"||v==="starred"?"mail":v;$("#v-"+id).classList.add("on");
+ if(id==="mail"){$("#mk").textContent=v==="inbox"?"Messagerie unifiée":"Priorités & suivi";$("#mt").textContent=v==="inbox"?"BOÎTE DE RÉCEPTION":"MAILS IMPORTANTS"}
+ $("#side").classList.remove("open");render()}
+function render(){save();renderNav();
+ if(sec==="dashboard")dash();else if(sec==="cleaner")cleaner();else if(sec==="inbox"||sec==="starred")mailbox();else if(sec==="documents")docs();else accs()}
+function dash(){const c=counts(),tot=accounts.reduce((s,a)=>s+a.count,0)||1,L=mails.some(m=>m.live);
+ $("#kpis").innerHTML=[["inbox","✉","#0284c7","rgba(56,189,248,.14)",tot.toLocaleString("fr-FR"),"Mails reçus",L?"synchronisé":"+14,2 %"],["cleaner","🛡","#f43f5e","rgba(244,63,94,.12)",stats().rate,"Taux d’indésirables",c.t+" menaces"],["starred","★","#f59e0b","rgba(245,158,11,.12)",c.s+(L?0:18),"Mails importants suivis",c.s+" non traités"],["documents","📎","#6366f1","rgba(99,102,241,.12)",c.d+(L?0:96),"Documents & pièces jointes",L?"réel":"184 Mo"]]
+ .map(k=>`<div class="card c3" style="cursor:pointer" data-go="${k[0]}"><div class="kt"><div class="ki" style="background:${k[3]};color:${k[2]}">${k[1]}</div><span class="tp" style="background:${k[3]};color:${k[2]}">${k[6]}</span></div><div class="kv">${k[4]}</div><div class="kl">${k[5]}</div></div>`).join("");
+ $$("[data-go]").forEach(e=>e.onclick=()=>go(e.dataset.go));
+ chart();
+ $("#prov").innerHTML=accounts.map(a=>{const p=Math.round(a.count/tot*100);return`<div class="bar"><div class="bm"><span>${esc(a.provider)} <span style="font-weight:400;color:var(--t3);font-size:11.5px">(${esc(a.email)})</span></span><span>${a.count} (${p} %)</span></div><div class="tr"><div style="width:${p}%;background:${a.color}"></div></div></div>`}).join("")}
+function curve(p){let d=`M ${p[0][0]} ${p[0][1]}`;for(let i=0;i<p.length-1;i++){const x=(p[i][0]+p[i+1][0])/2;d+=` C ${x} ${p[i][1]}, ${x} ${p[i+1][1]}, ${p[i+1][0]} ${p[i+1][1]}`}return d}
+function chart(){const d=stats(),l=curve(d.p),w=$("#cw");
+ $("#ax").innerHTML=d.lab.map(x=>`<span>${x}</span>`).join("");$("#ln").setAttribute("d",l);$("#area").setAttribute("d",l+" L 640 190 L 0 190 Z");
+ $("#sp").setAttribute("d",curve(d.p.map((p,i)=>[p[0],d.sp[i]])));
+ $$(".cd").forEach(x=>x.remove());const tip=$("#tip");
+ d.p.forEach(p=>{const b=document.createElement("button");b.type="button";b.className="cd";b.setAttribute("aria-label",`${p[4]} : ${p[2]} reçus, ${p[3]} indésirables`);
+  b.style.left=p[0]/640*100+"%";b.style.top=p[1]/205*100+"%";
+  const show=()=>{tip.style.left=Math.min(88,Math.max(12,p[0]/640*100))+"%";tip.style.top=b.style.top;tip.innerHTML=`<div style="font-size:10.5px;color:#94a3b8">${p[4]}</div><b style="color:#7dd3fc">${p[2]} reçus</b><div style="font-size:11px;color:#fda4af">${p[3]} indésirables</div>`;tip.classList.add("v")};
+  b.onmouseenter=b.onfocus=show;b.onmouseleave=b.onblur=()=>tip.classList.remove("v");w.appendChild(b)})}
+function cleaner(){const t=threats(),c=$("#threats");
+ $("#cTitle").textContent=t.length?`${t.length} menace${t.length>1?"s":""} active${t.length>1?"s":""} détectée${t.length>1?"s":""}`:"Aucune menace active — boîte nettoyée";
+ $("#cDesc").textContent=t.length?"Phishing, spams publicitaires et newsletters inactives isolés.":"Tous les spams, phishings et abonnements indésirables ont été éliminés.";
+ c.innerHTML=t.length?t.map(m=>`<div class="thr c4" data-id="${m.id}"><div><div style="display:flex;justify-content:space-between;margin-bottom:10px;gap:6px"><span class="pp ${m.provider}">${m.provider}</span><span class="pp" style="color:#f43f5e;background:rgba(244,63,94,.12)">${esc(m.threat)}</span></div><div style="font-size:14.5px;font-weight:700;margin-bottom:6px">${esc(m.sender)}</div><div style="font-size:13px;font-weight:600;margin-bottom:6px">${esc(m.subject)}</div><div class="vs" style="margin-bottom:10px">${esc(m.desc)}</div></div><button class="btn d" data-kill="${m.id}">Supprimer &amp; bloquer</button></div>`).join(""):`<div style="grid-column:span 12;padding:40px;text-align:center;color:var(--t2);font-weight:600">✨ Votre boîte mail est entièrement sécurisée.</div>`;
+ $$("[data-kill]").forEach(b=>b.onclick=()=>kill([b.dataset.kill],"Menace supprimée et expéditeur bloqué"))}
+function kill(ids,msg){ids.forEach((id,i)=>{const e=$(`.thr[data-id="${id}"]`);if(e)setTimeout(()=>e.classList.add("out"),i*100)});
+ setTimeout(()=>{mails.filter(m=>ids.includes(m.id)&&m.live).forEach(m=>live.run(m,"del").catch(()=>{}));mails=mails.filter(m=>!ids.includes(m.id));toast(msg);render()},ids.length*100+480)}
+function filtered(){return mails.filter(m=>{if(m.spam)return false;if(sec==="starred"&&!m.starred)return false;if(fAcc!=="all"&&m.provider!==fAcc)return false;
+ if(fSt==="unread"&&!m.unread)return false;if(fSt==="starred"&&!m.starred)return false;if(fSt==="att"&&!m.att.length)return false;
+ const q=query.trim().toLowerCase();return!q||[m.sender,m.subject,m.snippet].some(x=>x.toLowerCase().includes(q))})}
+function chips(el,items,cur,fn){$(el).innerHTML=items.map(([v,l])=>`<button class="chip ${v===cur?"on":""}" data-v="${v}">${l}</button>`).join("");$$(el+" .chip").forEach(c=>c.onclick=()=>fn(c.dataset.v))}
+function mailbox(){chips("#fa",[["all","Tous les comptes"],["Gmail","Gmail"],["Outlook","Outlook"],["iCloud","iCloud"],["IMAP","Pro IMAP"]],fAcc,v=>{fAcc=v;render()});
+ chips("#fs",[["all","Tous"],["unread","Non lus"],["starred","Importants"],["att","Pièces jointes"]],fSt,v=>{fSt=v;render()});
+ const f=filtered(),l=$("#list"),r=$("#reader");
+ if(!f.length){l.innerHTML=`<div style="padding:36px 20px;text-align:center;color:var(--t2)">Aucun message trouvé.</div>`;r.innerHTML=`<div style="text-align:center;color:var(--t3);padding:40px">Sélectionnez un message pour le lire</div>`;return}
+ if(!f.some(m=>m.id===sel))sel=f[0].id;
+ l.innerHTML=f.map(m=>`<div class="row ${m.id===sel?"sel":""} ${m.unread?"un":""}" data-m="${m.id}" tabindex="0" role="button"><div class="rt"><span class="s">${m.unread?"● ":""}${esc(m.sender)}</span><span class="tm">${m.time}</span></div><div class="j">${esc(m.subject)}</div><div class="sn">${esc(m.snippet)}</div><div class="rt" style="margin:0"><span><span class="pp ${m.provider}">${m.provider}</span>${m.att.length?` <span class="tm">📎 ${m.att.length}</span>`:""}</span><button class="star ${m.starred?"on":""}" data-s="${m.id}" aria-label="Marquer important">${m.starred?"★":"☆"}</button></div></div>`).join("");
+ $$(".row").forEach(e=>{const open=()=>{sel=e.dataset.m;const m=mails.find(x=>x.id===sel);if(m.live&&m.unread)live.run(m,"read").catch(()=>{});m.unread=false;render()};e.onclick=open;e.onkeydown=k=>{if(k.key==="Enter")open()}});
+ $$("[data-s]").forEach(b=>b.onclick=e=>{e.stopPropagation();star(b.dataset.s)});
+ reader(f.find(m=>m.id===sel))}
+function star(id){const m=mails.find(x=>x.id===id);m.starred=!m.starred;if(m.live)live.run(m,"star").catch(e=>toast("Échec : "+e.message));toast(m.starred?"Ajouté aux favoris":"Retiré des favoris");render()}
+function reader(m){$("#reader").innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--bd)"><div style="display:flex;gap:8px"><button class="btn" id="rs">${m.starred?"★ Important":"☆ Marquer important"}</button><button class="btn d" id="rd">Supprimer</button></div><span class="pp ${m.provider}">Via ${m.provider}</span></div>
+ <h2 style="font-size:19px;margin:16px 0 14px">${esc(m.subject)}</h2>
+ <div style="display:flex;align-items:center;gap:12px"><div class="av" style="width:44px;height:44px;background:${m.col}">${m.av}</div><div><div style="font-size:14px;font-weight:700">${esc(m.sender)}</div><div class="vs" style="margin:0">&lt;${esc(m.email)}&gt;</div></div></div>
+ <div class="rb">${esc(m.body)}</div>
+ ${m.att.map(a=>`<span class="att" data-dl="${esc(a.n)}" data-mid="${m.id}"><b style="color:#38bdf8;font-size:10.5px">${a.t}</b><span><b>${esc(a.n)}</b><br><small style="color:var(--t3)">${a.s}</small></span></span>`).join("")}
+ ${m.rep.map(r=>`<div class="rep"><b style="color:#38bdf8;font-size:11.5px">Vous • ${r.time}</b><div>${esc(r.text)}</div></div>`).join("")}
+ <div style="border-top:1px solid var(--bd);padding-top:16px;margin-top:14px"><textarea id="qr" placeholder="Réponse rapide à ${esc(m.sender)}…" aria-label="Réponse rapide"></textarea><div style="text-align:right"><button class="pri" id="qs">Envoyer</button></div></div>`;
+ $("#rs").onclick=()=>star(m.id);$("#rd").onclick=()=>{if(m.live)live.run(m,"del").catch(e=>toast("Échec : "+e.message));mails=mails.filter(x=>x.id!==m.id);toast("Message supprimé");render()};
+ $$("[data-dl]").forEach(a=>a.onclick=()=>dl(a));
+ $("#qs").onclick=async()=>{const t=$("#qr").value.trim();if(!t)return;try{if(m.live)await live.run(m,"reply",t);m.rep.push({text:t,time:"à l’instant"});toast("Réponse envoyée à "+m.sender);render()}catch(e){toast("Échec de l’envoi : "+e.message)}}}
+function docs(){const all=[];real().forEach(m=>m.att.forEach(a=>all.push({...a,mid:m.id,sender:m.sender,provider:m.provider,time:m.time})));
+ chips("#fd",[["ALL","Tous"],["PDF","PDF"],["XLSX","Excel"],["DOCX","Word"],["PNG","Images"]],fDoc,v=>{fDoc=v;render()});
+ const c={PDF:"#f43f5e",XLSX:"#10b981",DOCX:"#0284c7",PNG:"#a855f7"},list=fDoc==="ALL"?all:all.filter(d=>d.t===fDoc);
+ $("#docs").innerHTML=list.length?list.map(d=>`<div class="card" style="padding:20px;display:flex;flex-direction:column;gap:14px"><div style="display:flex;justify-content:space-between"><b style="padding:10px;border-radius:14px;font-size:11px;background:${c[d.t]||"#64748b"}22;color:${c[d.t]||"#64748b"}">${d.t}</b><span class="pp ${d.provider}" style="align-self:center">${d.provider}</span></div><div><div style="font-size:14px;font-weight:700;word-break:break-word">${esc(d.n)}</div><div class="vs">De <b>${esc(d.sender)}</b> • ${d.time}</div></div><div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--bd);padding-top:10px"><span class="tm">${d.s}</span><button class="btn" data-dl="${esc(d.n)}" data-mid="${d.mid}">Télécharger</button></div></div>`).join(""):`<div class="vs">Aucun document.</div>`;
+ $$("[data-dl]").forEach(b=>b.onclick=()=>dl(b))}
+function accHtml(){return accounts.map(a=>`<div class="acc"><div style="display:flex;align-items:center;gap:14px"><div class="av" style="width:44px;height:44px;background:${a.color}">${esc(a.provider.slice(0,2).toUpperCase())}</div><div><div style="font-size:15px;font-weight:700">${esc(a.provider)} — ${esc(a.email)}</div><div class="vs" style="margin-top:2px"><b style="color:${a.status&&/requise|Échec/.test(a.status)?"#f59e0b":"#10b981"}">● ${esc(a.status||"Synchronisé")}</b> • ${a.count} messages</div></div></div><div style="display:flex;gap:8px"><button class="btn" data-sync="${a.id}">Synchroniser</button><button class="btn d" data-off="${a.id}">Déconnecter</button></div></div>`).join("")}
+function accs(){$("#accs").innerHTML=accounts.length?accHtml():`<div class="vs">Aucun compte connecté. Ouvrez les paramètres pour ajouter Gmail ou Outlook.</div>`;bindAcc()}
+function bindAcc(){$$("[data-sync]").forEach(b=>b.onclick=()=>live.sync(b.dataset.sync));
+ $$("[data-off]").forEach(b=>b.onclick=()=>{if(accounts.length<=1&&!accounts[0].live)return toast("Conservez au moins un compte actif");live.drop(b.dataset.off);accounts=accounts.filter(a=>a.id!==b.dataset.off);toast("Compte déconnecté");render();$("#mAccs").innerHTML=accHtml();bindAcc()})}
+const open=id=>{if(id==="composeModal")$("#cf").innerHTML=accounts.map(a=>`<option value="${a.id}">${esc(a.provider)} (${esc(a.email)})</option>`).join("");
+ if(id==="setModal"){$("#mAccs").innerHTML=accHtml();bindAcc()}$("#"+id).classList.add("on")};
+const close=()=>{$$(".mb").forEach(m=>m.classList.remove("on"))};
+$$("[data-close]").forEach(b=>b.onclick=close);$$(".mb").forEach(m=>m.onclick=e=>{if(e.target===m)close()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
+$("#openCompose").onclick=()=>open("composeModal");$("#openSet").onclick=$("#sum").onclick=()=>open("setModal");
+$("#manage").onclick=()=>open("setModal");$("#addAcc").onclick=()=>open("setModal");
+$("#send").onclick=async()=>{const t=$("#ct").value.trim(),s=$("#cs").value.trim(),b=$("#cb").value,a=accounts.find(x=>x.id===$("#cf").value);if(!/^\S+@\S+\.\S+$/.test(t)||!s)return toast("Destinataire et objet requis");
+ try{if(a&&a.live)await live.send(a,t,s,b);close();$("#ct").value=$("#cs").value=$("#cb").value="";toast(a&&a.live?"Message envoyé à "+t:`Message « ${s} » envoyé à ${t} (démo)`)}catch(e){toast("Échec de l’envoi : "+e.message)}};
+$("#reset").onclick=()=>{try{localStorage.removeItem(KEY)}catch(e){}Object.keys(TOK).forEach(k=>delete TOK[k]);accounts=A0.map(a=>({...a}));mails=M0.map(m=>({...m}));close();render();toast("Données de démo restaurées")};
+$("#cleanAll").onclick=()=>{const ids=threats().map(m=>m.id);if(ids.length)kill(ids,"Toutes les menaces ont été éliminées !")};
+$$("#per button").forEach(b=>b.onclick=()=>{$$("#per button").forEach(x=>x.classList.remove("on"));b.classList.add("on");period=b.dataset.p;dash()});
+$("#q").oninput=e=>{query=e.target.value;if(sec==="inbox"||sec==="starred")mailbox()};
+$("#fab").onclick=()=>$("#side").classList.toggle("open");
+const theme=()=>{document.body.classList.toggle("light",light);$("#thm").textContent=light?"Mode sombre":"Mode clair"};
+const layout=()=>{document.body.classList.toggle("docked",docked);$("#lay").textContent=docked?"Ancré":"Flottant"};
+$("#thm").onclick=()=>{light=!light;theme();save()};$("#lay").onclick=()=>{docked=!docked;layout();save()};
+$("#blur").oninput=e=>{$("#bo").textContent=e.target.value+"px";document.documentElement.style.setProperty("--blur",e.target.value+"px")};
+$("#op").oninput=e=>{$("#oo").textContent=e.target.value+"%";document.documentElement.style.setProperty("--op",e.target.value/100)};
+/* ===== Comptes réels : Gmail (API Gmail) et Outlook (Microsoft Graph), OAuth dans le navigateur ===== */
+const POP=!!(window.opener&&window.opener!==window&&/[#?](code|error|state)=/.test(location.search+location.hash));
+let CFG={};try{CFG=JSON.parse(localStorage.getItem("aether-cfg")||"{}")}catch(e){}
+const TOK={}; /* jetons Google : en mémoire uniquement, jamais écrits sur disque */
+const b64=s=>{const u=new TextEncoder().encode(s);let b="";u.forEach(c=>b+=String.fromCharCode(c));return btoa(b)};
+const enc=s=>b64(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const unb=s=>Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
+const dec=s=>{try{return new TextDecoder().decode(unb(s))}catch(e){return""}};
+const size=n=>n>1048576?(n/1048576).toFixed(1).replace(".",",")+" Mo":Math.max(1,Math.round(n/1024))+" Ko";
+const fmt=ts=>{const d=new Date(ts);return d.toDateString()===new Date().toDateString()?d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}):d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})};
+const COLS=["#0284c7","#6366f1","#059669","#e11d48","#f59e0b","#64748b"];
+function who(n,e){n=n||e;return{sender:n,email:e,av:n.replace(/[^\p{L}\p{N} ]/gu,"").split(" ").filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("")||"?",col:`linear-gradient(135deg,${COLS[e.length%6]},#38bdf8)`}}
+function parseFrom(h){const m=/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/.exec(h||"");return m?who(m[1].trim(),m[2]):who("",(h||"").trim()||"inconnu")}
+function html2txt(h){const d=new DOMParser().parseFromString(h||"","text/html");d.querySelectorAll("style,script").forEach(x=>x.remove());return d.body.textContent.replace(/[ \t]+\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim()}
+const ext=n=>(n.split(".").pop()||"FILE").toUpperCase().slice(0,4);
+function dlFile(name,blob){const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}
+async function api(url,t,o={}){const r=await fetch(url,{...o,headers:{Authorization:"Bearer "+t,"Content-Type":"application/json",...(o.headers||{})}});
+ if(!r.ok){let m="";try{m=(await r.json()).error.message}catch(e){}throw new Error(m||"HTTP "+r.status)}
+ const x=await r.text();return x?JSON.parse(x):null}
+
+const GB="https://gmail.googleapis.com/gmail/v1/users/me/";
+const G={
+ token(hint,prompt){return new Promise((ok,ko)=>{if(!window.google||!google.accounts)return ko(new Error("Script Google non chargé"));if(!CFG.google)return ko(new Error("ID client Google manquant"));
+  google.accounts.oauth2.initTokenClient({client_id:CFG.google,scope:"https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.send",login_hint:hint||undefined,
+   callback:r=>r.error?ko(new Error(r.error_description||r.error)):ok({t:r.access_token,exp:Date.now()+(r.expires_in-60)*1000}),
+   error_callback:e=>ko(new Error(e.message||e.type||"Connexion annulée"))}).requestAccessToken({prompt});})},
+ async first(){const r=await G.token("","select_account");const p=await api(GB+"profile",r.t);return{tok:r,email:p.emailAddress}},
+ async sync(acc,t){const ids=async q=>(await api(GB+"messages?maxResults="+q,t)).messages||[];
+  const [i,s]=await Promise.all([ids("30&labelIds=INBOX"),ids("10&labelIds=SPAM")]);
+  const r=await Promise.all([...i.map(x=>[x,0]),...s.map(x=>[x,1])].map(async([x,sp])=>{try{return G.map(acc,await api(GB+"messages/"+x.id+"?format=full",t),sp)}catch(e){return null}}));
+  return r.filter(Boolean)},
+ map(acc,j,sp){const h=n=>((j.payload.headers||[]).find(x=>x.name.toLowerCase()===n)||{}).value||"";let tx="",ht="";const att=[];
+  (function w(p){if(!p)return;if(p.filename&&p.body&&p.body.attachmentId)att.push({n:p.filename,t:ext(p.filename),s:size(p.body.size),ref:p.body.attachmentId});
+   else if(p.mimeType==="text/plain"&&p.body&&p.body.data&&!tx)tx=dec(p.body.data);else if(p.mimeType==="text/html"&&p.body&&p.body.data&&!ht)ht=dec(p.body.data);(p.parts||[]).forEach(w)})(j.payload);
+  const f=parseFrom(h("from")),ts=+j.internalDate,L=j.labelIds||[],sn=html2txt(j.snippet);
+  return{id:"g:"+j.id,rid:j.id,tid:j.threadId,mid:h("message-id"),acc:acc.id,live:true,...f,provider:"Gmail",subject:h("subject")||"(sans objet)",snippet:sn,body:tx||html2txt(ht)||sn,ts,time:fmt(ts),unread:L.includes("UNREAD"),starred:L.includes("STARRED"),spam:!!sp,threat:"Courrier indésirable",desc:"Classé comme spam par Gmail. Vérifiez l’expéditeur avant de le bloquer.",att,rep:[]}},
+ star:(m,t)=>api(GB+"messages/"+m.rid+"/modify",t,{method:"POST",body:JSON.stringify(m.starred?{addLabelIds:["STARRED"]}:{removeLabelIds:["STARRED"]})}),
+ read:(m,t)=>api(GB+"messages/"+m.rid+"/modify",t,{method:"POST",body:JSON.stringify({removeLabelIds:["UNREAD"]})}),
+ del:(m,t)=>api(GB+"messages/"+m.rid+"/trash",t,{method:"POST"}),
+ async dl(m,t,a){const r=await api(GB+"messages/"+m.rid+"/attachments/"+a.ref,t);dlFile(a.n,new Blob([unb(r.data)]))},
+ async send(t,to,subj,body,x={}){const cl=s=>String(s).replace(/[\r\n]+/g," ");
+  const raw=["To: "+cl(to),"Subject: =?UTF-8?B?"+b64(cl(subj))+"?=","MIME-Version: 1.0","Content-Type: text/plain; charset=UTF-8","Content-Transfer-Encoding: base64",...(x.mid?["In-Reply-To: "+cl(x.mid),"References: "+cl(x.mid)]:[]),"",b64(body)].join("\r\n");
+  await api(GB+"messages/send",t,{method:"POST",body:JSON.stringify({raw:enc(raw),threadId:x.tid})})},
+ reply:(m,t,txt)=>G.send(t,m.email,/^re:/i.test(m.subject)?m.subject:"Re: "+m.subject,txt,{mid:m.mid,tid:m.tid})
+};
+
+const MB="https://graph.microsoft.com/v1.0/me/";
+const MS={app:null,sc:["Mail.ReadWrite","Mail.Send","User.Read"],
+ init(){if(!MS.app){if(!CFG.ms||!window.msal)throw new Error("ID client Microsoft manquant ou script non chargé");
+  MS.app=new msal.PublicClientApplication({auth:{clientId:CFG.ms,authority:"https://login.microsoftonline.com/common",redirectUri:location.origin+location.pathname},cache:{cacheLocation:"localStorage"}})}return MS.app},
+ async first(){const r=await MS.init().loginPopup({scopes:MS.sc,prompt:"select_account"});return{email:r.account.username}},
+ async token(acc,inter){const a=MS.init(),ma=a.getAllAccounts().find(x=>x.username.toLowerCase()===acc.email.toLowerCase());
+  if(ma){try{return(await a.acquireTokenSilent({scopes:MS.sc,account:ma})).accessToken}catch(e){}}
+  if(!inter)throw new Error("Reconnexion requise");return(await a.loginPopup({scopes:MS.sc,loginHint:acc.email})).accessToken},
+ async sync(acc,t){const q="/messages?$top=%N&$orderby=receivedDateTime desc&$select=id,subject,from,receivedDateTime,bodyPreview,body,isRead,flag,hasAttachments",o={headers:{Prefer:'outlook.body-content-type="text"'}};
+  const get=async(f,n)=>(await api(MB+"mailFolders/"+f+q.replace("%N",n),t,o)).value||[];
+  const [i,s]=await Promise.all([get("inbox",30),get("junkemail",10)]);
+  const out=[...i.map(x=>MS.map(acc,x,0)),...s.map(x=>MS.map(acc,x,1))];
+  await Promise.all(out.filter(m=>m.hasA).map(async m=>{try{m.att=((await api(MB+"messages/"+m.rid+"/attachments?$select=id,name,size",t)).value||[]).filter(a=>a.name).map(a=>({n:a.name,t:ext(a.name),s:size(a.size),ref:a.id}))}catch(e){}}));
+  return out},
+ map(acc,x,sp){const ts=+new Date(x.receivedDateTime),e=(x.from&&x.from.emailAddress)||{},b=x.body||{};
+  return{id:"o:"+x.id,rid:x.id,acc:acc.id,live:true,hasA:x.hasAttachments,...who(e.name,e.address||"inconnu"),provider:"Outlook",subject:x.subject||"(sans objet)",snippet:(x.bodyPreview||"").replace(/\s+/g," ").trim(),body:b.contentType==="html"?html2txt(b.content):(b.content||x.bodyPreview||""),ts,time:fmt(ts),unread:!x.isRead,starred:!!(x.flag&&x.flag.flagStatus==="flagged"),spam:!!sp,threat:"Courrier indésirable",desc:"Classé comme indésirable par Outlook. Vérifiez l’expéditeur avant de le bloquer.",att:[],rep:[]}},
+ star:(m,t)=>api(MB+"messages/"+m.rid,t,{method:"PATCH",body:JSON.stringify({flag:{flagStatus:m.starred?"flagged":"notFlagged"}})}),
+ read:(m,t)=>api(MB+"messages/"+m.rid,t,{method:"PATCH",body:JSON.stringify({isRead:true})}),
+ del:(m,t)=>api(MB+"messages/"+m.rid,t,{method:"DELETE"}),
+ async dl(m,t,a){const r=await api(MB+"messages/"+m.rid+"/attachments/"+a.ref,t);dlFile(a.n,new Blob([unb(r.contentBytes)]))},
+ send:(t,to,subj,body)=>api(MB+"sendMail",t,{method:"POST",body:JSON.stringify({message:{subject:subj,body:{contentType:"Text",content:body},toRecipients:[{emailAddress:{address:to}}]}})}),
+ reply:(m,t,txt)=>api(MB+"messages/"+m.rid+"/reply",t,{method:"POST",body:JSON.stringify({comment:txt})})
+};
+
+const live={
+ prov:a=>a.kind==="google"?G:MS,
+ async tok(a,inter){if(a.kind==="ms")return MS.token(a,inter);const k=TOK[a.id];if(k&&k.exp>Date.now())return k.t;if(!inter&&!window.google)throw new Error("Reconnexion requise");
+  try{const r=await G.token(a.email,inter?"":"none");TOK[a.id]=r;return r.t}catch(e){if(!inter)throw new Error("Reconnexion requise");throw e}},
+ async run(m,fn,...x){const a=accounts.find(z=>z.id===m.acc);return live.prov(a)[fn](m,await live.tok(a,true),...x)},
+ async sync(id,quiet){const a=accounts.find(x=>x.id===id);if(!a)return;if(!a.live)return toast("Synchronisation "+a.provider+" réussie (compte de démonstration)");
+  try{const list=await live.prov(a).sync(a,await live.tok(a,!quiet));mails=mails.filter(m=>m.acc!==id).concat(list);a.count=list.filter(m=>!m.spam).length;a.status="Synchronisé à "+fmt(Date.now());if(!quiet)toast("Synchronisation "+a.provider+" réussie")}
+  catch(e){a.status=e.message==="Reconnexion requise"?"Reconnexion requise : cliquez sur Synchroniser":"Échec : "+e.message;if(!quiet)toast("Échec : "+e.message)}
+  render();if($("#setModal").classList.contains("on")){$("#mAccs").innerHTML=accHtml();bindAcc()}},
+ async connect(kind){const k=kind==="google"?"google":"ms";if(!CFG[k])return toast("Renseignez d’abord l’ID client "+(k==="google"?"Google":"Microsoft"));
+  try{const P=kind==="google"?G:MS,r=await P.first();
+   if(accounts.some(a=>a.live&&a.kind===kind&&a.email.toLowerCase()===r.email.toLowerCase()))return toast("Compte déjà connecté");
+   if(!accounts.some(a=>a.live)){accounts=[];mails=[]}
+   const a={id:"l"+Date.now(),live:true,kind,provider:kind==="google"?"Gmail":"Outlook",email:r.email,color:kind==="google"?"#ef4444":"#0284c7",count:0,status:"Synchronisation…"};
+   accounts.push(a);if(r.tok)TOK[a.id]=r.tok;render();$("#mAccs").innerHTML=accHtml();bindAcc();
+   await live.sync(a.id);if(sec==="dashboard"&&!mails.length)render()}catch(e){toast("Échec de la connexion : "+e.message)}},
+ drop(id){const a=accounts.find(x=>x.id===id);if(a&&a.kind==="google"&&TOK[id]&&window.google)try{google.accounts.oauth2.revoke(TOK[id].t)}catch(e){}delete TOK[id];mails=mails.filter(m=>m.acc!==id)},
+ async send(a,to,s,b){await live.prov(a).send(await live.tok(a,true),to,s,b)}
+};
+async function dl(el){const m=mails.find(x=>x.id===el.dataset.mid),a=m&&m.att.find(x=>x.n===el.dataset.dl);
+ if(m&&m.live&&a){try{toast("Téléchargement de "+a.n+"…");await live.run(m,"dl",a)}catch(e){toast("Échec : "+e.message)}}else toast("Téléchargement de "+el.dataset.dl+" (démo)")}
+function stats(){if(!mails.some(m=>m.live))return D[period];
+ const n=period==="7J"?7:4,sz=period==="7J"?1:7,now=new Date();now.setHours(23,59,59,999);
+ const b=Array.from({length:n},(_,i)=>({l:0,s:0,d:new Date(+now-(n-1-i)*sz*864e5)}));
+ mails.filter(m=>m.live&&m.ts).forEach(m=>{const i=n-1-Math.floor((now-m.ts)/(sz*864e5));if(i>=0&&i<n)m.spam?b[i].s++:b[i].l++});
+ const mx=Math.max(1,...b.map(x=>x.l)),tl=b.reduce((a,x)=>a+x.l,0),ts=b.reduce((a,x)=>a+x.s,0);
+ return{rate:(tl+ts?ts/(tl+ts)*100:0).toFixed(1).replace(".",",")+" %",lab:b.map((x,i)=>n===7?x.d.toLocaleDateString("fr-FR",{weekday:"short"}):"Sem "+(i+1)),
+  p:b.map((x,i)=>[Math.round(i*640/(n-1)),Math.round(185-x.l/mx*140),x.l,x.s,x.d.toLocaleDateString("fr-FR")]),sp:b.map(x=>Math.round(185-x.s/mx*140))}}
+if(!POP){
+ load();theme();layout();render();
+ const cfgSave=()=>{CFG.google=$("#gid").value.trim();CFG.ms=$("#mid").value.trim();try{localStorage.setItem("aether-cfg",JSON.stringify(CFG))}catch(e){}};
+ $("#gid").value=CFG.google||"";$("#mid").value=CFG.ms||"";$("#gid").oninput=$("#mid").oninput=cfgSave;
+ $("#cG").onclick=()=>{cfgSave();live.connect("google")};$("#cM").onclick=()=>{cfgSave();live.connect("ms")};
+ accounts.filter(a=>a.live).forEach(a=>live.sync(a.id,true));
+ setInterval(()=>accounts.filter(a=>a.live&&(a.kind==="ms"||TOK[a.id])).forEach(a=>live.sync(a.id,true)),120000);
+ if("serviceWorker"in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+</script>
+</body>
+</html>
